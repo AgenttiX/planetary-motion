@@ -38,3 +38,10 @@ venv
 # F2PY output
 *f2pywrappers.f
 *module.c
+
+# LaTeX output
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+main.pdf
