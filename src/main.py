@@ -55,6 +55,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resize(1280, 720)
 
 
+class Celestial:
+    def __init__(
+            self,
+            x: tp.Union[np.ndarray, float],
+            m: float,
+            radius: float,
+            color: tp.Tuple[int, int, int],
+            reference: "Celestial",
+            x_min: float,
+            x_max: float,
+            texture_low: str = None,
+            texture_high: str = None,
+    ):
+        if isinstance(x, (int, float)):
+            self.x = np.array([x, 0, 0])
+        else:
+            self.x = x
+        self.m = m
+        self.radius = radius
+        self.color = color
+        self.texture_low = texture_low
+        self.texture_high = texture_high
 def main():
     n_objs = 10
     dt = 0.1
