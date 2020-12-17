@@ -1,4 +1,5 @@
-# This file is for usage with Python
+# This file specifies the required packages for Python
+# https://pip.pypa.io/en/stable/user_guide/#requirements-files
 matplotlib >= 3.3.3
 numpy >= 1.19.4
 pyqtgraph >= 0.11.0
