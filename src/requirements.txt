@@ -1,3 +1,7 @@
 # This file is for usage with Python
 matplotlib
 numpy
+pyqtgraph
+PyOpenGL
+PyOpenGL-accelerate
+PySide2
