@@ -31,5 +31,10 @@
 *.out
 *.app
 
+# Python
 .idea
 venv
+
+# F2PY output
+*f2pywrappers.f
+*module.c
