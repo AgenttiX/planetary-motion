@@ -36,7 +36,7 @@ jobs:
             ${{ github.workspace }}/src/pylint.txt
           if-no-files-found: error
   build:
-    uns-on: ubuntu-latest
+    runs-on: ubuntu-latest
       steps:
         - name: Setup Python
           uses: actions/setup-python@v2
