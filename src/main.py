@@ -22,7 +22,9 @@ def main():
     a = np.zeros_like(x)
     m = np.ones(n_objs, order="F")
 
-    core.iterate(x, v, a, m, dt, n_iters)
+    print("x")
+    print(x)
+    core.iterate(x, v, a, m, dt, n_objs, n_iters)
 
     print("x")
     print(x)
