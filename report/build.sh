@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
-latexmk
+latexmk -pdf
 cp main.pdf ../report.pdf
