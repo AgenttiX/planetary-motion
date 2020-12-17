@@ -1,7 +1,7 @@
 # This file is for usage with Python
-matplotlib
-numpy
-pyqtgraph
-PyOpenGL
-PyOpenGL-accelerate
-PySide2
+matplotlib >= 3.3.3
+numpy >= 1.19.4
+pyqtgraph >= 0.11.0
+PyOpenGL >= 3.1.5
+PyOpenGL-accelerate >= 3.1.5
+PySide2 >= 5.15.2
