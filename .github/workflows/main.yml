@@ -1,0 +1,64 @@
+name: CI
+on: [ push, pull_request ]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Print Python version
+        run: python -V
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Load pip cache
+        uses: actions/cache@v2
+        with:
+          path: .pip
+          key: pip-${{ runner.os }}-${{ hashFiles('src/requirements.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+            pip-
+      - name: Install requirements
+        run: |
+          pip --cache-dir=.pip install --upgrade pip
+          pip --cache-dir=.pip install pylint fortran-linter
+          pip --cache-dir=.pip install -r src/requirements.txt
+      - name: Run fortran-linter
+        run: fortran-linter core.f90 main.f90
+      - name: Run Pylint
+        run: pylint main.py pg_examples.py 2>&1 | tee pylint.txt
+        working-directory: ${{ github.workspace }}/src
+      - name: Upload results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Lint
+          path: |
+            ${{ github.workspace }}/src/pylint.txt
+          if-no-files-found: error
+  build:
+    uns-on: ubuntu-latest
+      steps:
+        - name: Setup Python
+          uses: actions/setup-python@v2
+          - name: Print Python version
+            run: python -V
+          - name: Checkout
+            uses: actions/checkout@v2
+          - name: Load pip cache
+            uses: actions/cache@v2
+            with:
+              path: .pip
+              key: pip-${{ runner.os }}-${{ hashFiles('src/requirements.txt') }}
+              restore-keys: |
+                pip-${{ runner.os }}-
+                pip-
+          - name: Install requirements
+            run: |
+              pip --cache-dir=.pip install --upgrade pip
+              pip --cache-dir=.pip install -r src/requirements.txt
+          - name: Build
+            run: ./build.sh
+            working-directory: ${{ github.workspace }}/src
+          # - name: Run
+          #   run: python main.py
+          #   working-directory: ${{ github.workspace }}/analysis
