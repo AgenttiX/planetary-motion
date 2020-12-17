@@ -1,15 +1,16 @@
 subroutine iterate(x, v, a, m, dt, n_iters)
   implicit none
-  real, intent(inout) :: x(:,:)
-  real, intent(inout) :: v(:,:)
-  real, intent(inout) :: a(:,:)
-  real, intent(in) :: m(:)
-  real, intent(in) :: dt
+  ! Double precision is used for NumPy compatibility and more accurate results
+  real(kind=8), intent(inout) :: x(:,:)
+  real(kind=8), intent(inout) :: v(:,:)
+  real(kind=8), intent(inout) :: a(:,:)
+  real(kind=8), intent(in) :: m(:)
+  real(kind=8), intent(in) :: dt
   integer, intent(in) :: n_iters
 
   integer :: i, iter
   integer :: dims(2)
-  real :: a_prev(3)
+  real(kind=8) :: a_prev(3)
 
   dims = shape(x)
 
@@ -25,12 +26,12 @@ end subroutine iterate
 
 function force(x, m, i, n_objs)
   implicit none
-  real, intent(in) :: x(:,:)
-  real, intent(in) :: m(:)
+  real(kind=8), intent(in) :: x(:,:)
+  real(kind=8), intent(in) :: m(:)
   integer, intent(in) :: i, n_objs
 
-  real :: force(3)
-  real, parameter :: g = 1
+  real(kind=8) :: force(3)
+  real(kind=8), parameter :: g = 1
   integer :: j
   force = [0, 0, 0]
 
