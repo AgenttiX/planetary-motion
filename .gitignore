@@ -41,7 +41,12 @@ venv
 
 # LaTeX output
 *.aux
+*.bbl
+*.bcf
+*.blg
+*.dvi
 *.fdb_latexmk
 *.fls
 *.log
+*.run.xml
 main.pdf
