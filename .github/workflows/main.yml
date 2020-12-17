@@ -56,6 +56,13 @@ jobs:
             run: |
               pip --cache-dir=.pip install --upgrade pip
               pip --cache-dir=.pip install -r src/requirements.txt
+          - name: Install FOSSA
+            run: |
+              curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
+          - name: Run FOSSA
+            run: fossa analyze
+            env:
+              FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
           - name: Build
             run: ./build.sh
             working-directory: ${{ github.workspace }}/src
