@@ -1,16 +1,22 @@
 ! If this weren't a course project with the implicit requirement of doing everything ourselves,
 ! I would have used Python or some existing Fortran library for the
 ! file parsing, as Fortran isn't designed for these kind of things.
+! https://stackoverflow.com/a/32680819
 ! https://github.com/jacobwilliams/json-fortran
+! https://github.com/szaghi/FiNeR
 ! https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
 ! https://www.geeksforgeeks.org/read-a-file-line-by-line-in-python/
 
 module utils
-  ! integer, parameter :: DIMS = 3
-  ! integer, parameter :: REAL_KIND = 8
+  integer, parameter :: DIMS = 3
+  integer, parameter :: REAL_KIND = 8
   integer, parameter :: CONFIG_FILE_UNIT = 10
   integer, parameter :: MAX_LINE_LEN = 100
   character(len=*), parameter :: DEFAULT_CONFIG_PATH = "../run/config.txt"
+
+  ! These should be declared in core.f90, but for F2PY compatiblity they have been declared here
+  character(len=*), parameter :: DEFAULT_OUTPUT_PATH = "../run/output"
+  integer, parameter :: MAX_PATH_LEN = 200
 contains
   integer function bool2int(val)
     logical, intent(in) :: val

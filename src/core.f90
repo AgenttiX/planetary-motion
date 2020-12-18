@@ -1,17 +1,19 @@
 module core
-  ! Apparently the use of module constants is somewhat broken in F2PY
+  ! Apparently the use of module constants is broken in F2PY despite the use of F2PY specific type declarations.
+  ! With those declarations the Python module compiles but segfaults when loaded.
   ! https://stackoverflow.com/questions/19983850/f2py-access-module-parameter-from-subroutine
-  ! Therefore some of these constants have been re-declared in the functions
+  ! Therefore these constants have been re-declared in the functions.
+  ! With more time this issue could be debugged further.
 
   implicit none
-  integer, parameter :: DIMS = 3
-  integer, parameter :: REAL_KIND = 8
-  real(kind=REAL_KIND), parameter :: G = 1
-  real(kind=REAL_KIND), parameter :: MIN_DIST = 0.01
-
-  integer, parameter :: OUTPUT_FILE_UNIT = 11
-  integer, parameter :: MAX_PATH_LEN = 200
-  character(len=*), parameter :: DEFAULT_OUTPUT_PATH = "../run/output"
+!  integer, parameter :: DIMS = 3
+!  integer, parameter :: REAL_KIND = 8
+!  real(kind=REAL_KIND), parameter :: G = 1
+!  real(kind=REAL_KIND), parameter :: MIN_DIST = 0.01
+!
+!  integer, parameter :: OUTPUT_FILE_UNIT = 11
+!  integer, parameter :: MAX_PATH_LEN = 200
+!  character(len=*), parameter :: DEFAULT_OUTPUT_PATH = "../run/output"
 contains
   function force(x, m, i, n_objs)
     implicit none
@@ -20,8 +22,8 @@ contains
     ! does not work like it does in the other functions
     integer, parameter :: DIMS = 3
     integer, parameter :: REAL_KIND = 8
-    ! f2py real(kind=REAL_KIND), intent(aux) :: G
-    ! f2py real(kind=REAL_KIND), intent(aux) :: MIN_DIST
+    real(kind=REAL_KIND), parameter :: G = 1
+    real(kind=REAL_KIND), parameter :: MIN_DIST = 0.01
 
     integer, intent(in) :: i, n_objs
     real(kind=REAL_KIND), intent(in) :: x(DIMS,n_objs)
@@ -44,8 +46,10 @@ contains
     ! Note that on Python side the argument n_objs is optional, since it can be automatically determined from the input arrays
     implicit none
 
-    !f2py integer, intent(aux) :: DIMS
-    !f2py integer, intent(aux) :: REAL_KIND
+    integer, parameter :: DIMS = 3
+    integer, parameter :: REAL_KIND = 8
+    integer, parameter :: MAX_PATH_LEN = 200
+    character(len=*), parameter :: DEFAULT_OUTPUT_PATH = "../run/output"
 
     ! Double precision is used for NumPy compatibility and more accurate results
     integer, intent(in) :: n_steps, n_objs
@@ -99,7 +103,6 @@ contains
 
   subroutine print_arr_1d(arr, name, unit)
     implicit none
-    !f2py integer, intent(aux) :: REAL_KIND
     integer, parameter :: REAL_KIND = 8
 
     real(kind=REAL_KIND), intent(in) :: arr(:)
@@ -125,7 +128,6 @@ contains
 
   subroutine print_arr_2d(arr, name, unit)
     implicit none
-    !f2py integer, intent(aux) :: REAL_KIND
     integer, parameter :: REAL_KIND = 8
 
     real(kind=REAL_KIND), intent(in) :: arr(:, :)
@@ -154,8 +156,9 @@ contains
 
   subroutine print_progress(x, v, a, i, dt, n_steps, n_objs)
     implicit none
-    !f2py integer, intent(aux) :: DIMS
-    !f2py integer, intent(aux) :: REAL_KIND
+
+    integer, parameter :: DIMS = 3
+    integer, parameter :: REAL_KIND = 8
 
     integer, intent(in) :: i, n_steps, n_objs
     real(kind=REAL_KIND), intent(in) :: x(DIMS,n_objs), v(DIMS,n_objs), a(DIMS,n_objs)
@@ -171,8 +174,10 @@ contains
 
   subroutine write_progress(x, v, a, i, n_objs, path)
     implicit none
-    !f2py integer, intent(aux) :: DIMS
-    !f2py integer, intent(aux) :: REAL_KIND
+    integer, parameter :: DIMS = 3
+    integer, parameter :: REAL_KIND = 8
+    integer, parameter :: OUTPUT_FILE_UNIT = 11
+    integer, parameter :: MAX_PATH_LEN = 200
 
     integer, intent(in) :: i, n_objs
     real(kind=REAL_KIND), intent(in) :: x(DIMS,n_objs), v(DIMS,n_objs), a(DIMS,n_objs)

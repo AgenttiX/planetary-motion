@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+"""
+This is the Python-based main program of planetary-motion.
+It offers broader functionality than the pure Fortran version, with the most notable being plotting.
+"""
+
 import subprocess
 import typing as tp
 
@@ -10,6 +14,7 @@ from PySide2 import QtWidgets
 # Compilation is done automatically here to speed up development
 print("Compiling Fortran code")
 subprocess.run(["./build.sh"], check=True)
+print("Fortran code compiled")
 print("\n\n")
 
 # Your IDE may complain that the module does not exist, since the generated Python module is found dynamically
@@ -77,7 +82,10 @@ class Celestial:
         self.color = color
         self.texture_low = texture_low
         self.texture_high = texture_high
+
+
 def main():
+    print("Starting")
     n_objs = 10
     dt = 0.1
     # n_iters = 10

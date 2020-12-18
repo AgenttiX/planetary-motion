@@ -28,6 +28,8 @@ program main
   call print_arr_1d(m, "m")
 
   allocate(a(DIMS, n_objs))
+
+  ! Output directory processing
   call system("mkdir -p " // trim(output_path), status=ios)
   if (ios /= 0) then
     print *, "Failed to create output directory"
