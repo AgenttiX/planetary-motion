@@ -4,32 +4,39 @@
 
 module cmd_line
   implicit none
-  integer, parameter :: MAX_ARG_NAME_LEN = 20
+  integer, parameter :: MAX_ARG_LEN = 200
 contains
   integer function get_arg_ind(names) result(ind)
-    implicit none
-    ! The * means that the length of the string is determined by the caller
-    character(*), intent(in) :: names
+    ! NOTE
+    ! It turned out that this method wasn't needed after all, so it's incomplete
+    ! (At first I thought that the timestep arguments were supposed to be read from the command line)
 
-    character(len=MAX_ARG_NAME_LEN), allocatable :: names_arr(:)
-    character(len=MAX_ARG_NAME_LEN) :: asdf
-    integer :: i, num_names, num_args, ios
+    ! Return codes:
+    ! > 0 = position
+    ! 0 = should not happen (not used since in many other languages 0 means OK and arrays also begin from 0)
+    ! -1 = not found
+    ! -2 = found multiple
+    ! -3 = misc error
+    implicit none
+    ! The * means that the length of the strings is determined by the caller
+    character(*), intent(in) :: names(:)
+
+    character(len=MAX_ARG_LEN) :: text
+    integer :: i, j, num_names, num_args, ios
+    ind = 0
     ios = 0
     num_args = command_argument_count()
     num_names = -1
 
-    do while (ios == 0)
-      num_names = num_names + 1
-      read(names, *, iostat=ios) asdf
-      print *,asdf, num_names
+    do i=1, size(names)
+      do j=1, num_args
+        call get_command_argument(j, text, status=ios)
+        if (ios /= 0) then
+          ind = -3
+          return
+        end if
+      end do
     end do
-    print *, "num_names", num_names
 
-!    do i=1,size(names_arr)
-!      names_arr(i) = ""
-!    end do
-
-    read(names, *) names_arr
-    print *,names
   end function get_arg_ind
 end module cmd_line
