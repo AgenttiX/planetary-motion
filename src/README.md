@@ -14,11 +14,13 @@ When the virtualenv has been set up, the packages can be installed with
 
 When the all the dependencies have been installed, the project can be built by running the
 [build script](build.sh).
-
 The
 [GitHub Actions](https://github.com/features/actions)
 [workflow files](../.github/workflows)
 can be used as an additional template on how to build the project.
+
+Precompiled binaries are available on
+[GitHub](https://github.com/AgenttiX/planetary-motion/actions).
 
 <!-- By the way, in my opinion it would be the best to put both build and usage
 documentation in one README file in the root of the repository, since
