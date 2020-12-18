@@ -24,7 +24,7 @@ print("\n\n")
 import core
 
 
-from sim import Celestial, Simulation, AU, YEAR_IN_D, YEAR_IN_S, G
+from sim import Celestial, Simulation, AU, YEAR_IN_D, YEAR_IN_S, G, M_EARTH, ORBIT_R_EARTH, M_SUN, V_EARTH
 from gui import MainWindow
 
 
@@ -34,7 +34,7 @@ from gui import MainWindow
 sun = Celestial(
     x=0,
     v=0,
-    m=1.9885e30,
+    m=M_SUN,
     radius=695700e3,
     color=(255, 230, 0),
 )
@@ -50,16 +50,16 @@ mercury = Celestial(
 venus = Celestial(
     x=108208000e3,
     v=35.02e3,
-    m=48675e24,
+    m=4.8675e24,
     radius=6051.8e3,
     color=(250, 190, 40),
     reference=sun,
     period=0.615198
 )
 earth = Celestial(
-    x=149598023e3,
-    v=29.78e3,
-    m=5972.34e24,
+    x=ORBIT_R_EARTH,
+    v=V_EARTH,
+    m=M_EARTH,
     radius=6371.0e3,
     color=(25, 180, 200),
     reference=sun,
@@ -96,14 +96,14 @@ jupiter = Celestial(
 saturn = Celestial(
     x=1433.53e6*1e3,
     v=9.68e3,
-    m=5.6834,
+    m=5.6834e26,
     radius=58232e3,
     color=(220, 220, 130),
     reference=sun,
     period=29.4571
 )
 uranus = Celestial(
-    x=2875.04e9*1e3,
+    x=2875.04e6*1e3,
     v=6.8e3,
     m=8.6810e25,
     radius=25362e3,
@@ -121,7 +121,7 @@ neptune = Celestial(
     reference=sun,
     period=164.8
 )
-solar_system = [sun, mercury, venus, earth, mars, jupiter, saturn, neptune]
+solar_system = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
 
 
 def show_simulation(sim: Simulation, unit_mult: float = 1):
@@ -133,55 +133,55 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
 
 
 def part_1a():
-    sim = Simulation([sun, jupiter], dt=1*YEAR_IN_S, g=G)
+    sim = Simulation([sun, jupiter], dt=1*YEAR_IN_S, g=G, fix_scale=True)
     sim.run(steps=1000, save_interval=100)
     show_simulation(sim, unit_mult=AU)
 
 
 def part_3():
-    sim = Simulation(solar_system, dt=0.1*YEAR_IN_S, g=G)
-    sim.run(steps=1000, save_interval=100)
+    sim = Simulation(solar_system, dt=0.01*YEAR_IN_S, g=G, fix_scale=True)
+    sim.run(steps=100, save_interval=1)
     show_simulation(sim, unit_mult=AU)
 
 
-def nbody_test():
-    print("Starting")
-    n_objs = 10
-    dt = 0.1
-    # n_iters = 10
-
-    x = np.asfortranarray(2*np.random.rand(3, n_objs) - 1) * 10
-    # v = np.asfortranarray(np.random.rand(3, n_objs))
-    v = np.zeros_like(x)
-    a = np.zeros_like(x)
-    m = np.ones(n_objs, order="F")
-
-    print("x")
-    print(x.T)
-    print(core.core.iterate.__doc__)
-    # core.core.iterate(x, v, a, m, dt, 1)
-
-    app = pg.mkQApp()
-    win = MainWindow()
-    win.show()
-    win.nbody.set_pos(x.T)
-
-    def update():
-        core.core.iterate(x, v, a, m, dt, 1, g=1, min_dist=1)
-        win.nbody.set_pos(x.T)
-
-    timer = pg.QtCore.QTimer()
-    timer.timeout.connect(update)
-    timer.start(100)
-
-    app.exec_()
-
-    print("x")
-    print(x.T)
-    print("v")
-    print(v.T)
-    print("a")
-    print(a.T)
+# def nbody_test():
+#     print("Starting")
+#     n_objs = 10
+#     dt = 0.1
+#     # n_iters = 10
+#
+#     x = np.asfortranarray(2*np.random.rand(3, n_objs) - 1) * 10
+#     # v = np.asfortranarray(np.random.rand(3, n_objs))
+#     v = np.zeros_like(x)
+#     a = np.zeros_like(x)
+#     m = np.ones(n_objs, order="F")
+#
+#     print("x")
+#     print(x.T)
+#     print(core.core.iterate.__doc__)
+#     # core.core.iterate(x, v, a, m, dt, 1)
+#
+#     app = pg.mkQApp()
+#     win = MainWindow()
+#     win.show()
+#     win.nbody.set_pos(x.T)
+#
+#     def update():
+#         core.core.iterate(x, v, a, m, dt, 1, g=1, min_dist=1)
+#         win.nbody.set_pos(x.T)
+#
+#     timer = pg.QtCore.QTimer()
+#     timer.timeout.connect(update)
+#     timer.start(100)
+#
+#     app.exec_()
+#
+#     print("x")
+#     print(x.T)
+#     print("v")
+#     print(v.T)
+#     print("a")
+#     print(a.T)
 
 
 def nbody_test2():
@@ -201,4 +201,5 @@ def nbody_test2():
 if __name__ == "__main__":
     # nbody_test()
     # nbody_test2()
-    part_1a()
+    # part_1a()
+    part_3()

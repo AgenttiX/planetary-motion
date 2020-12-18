@@ -75,7 +75,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Simulation
         self.sim = sim
         self.unit_mult = unit_mult
-        self.colors = np.array([[*cel.color, 0] for cel in sim.celestials])
+        self.colors = np.array([[*cel.color, 255] for cel in sim.celestials]) / 255
         self.sizes = 1
 
         self.nbody.create_grids(1)
@@ -92,5 +92,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def redraw(self, hist_ind: int):
         x = self.sim.x_hist[hist_ind] / self.unit_mult
         # self.nbody.set_pos(x, color=self.colors, size=self.sizes)
+        print("x", hist_ind)
         print(x.T)
-        self.nbody.set_pos(x.T)
+        self.nbody.set_pos(x.T, color=self.colors)
