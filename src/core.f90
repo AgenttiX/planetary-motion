@@ -15,19 +15,18 @@ module core
 !  integer, parameter :: MAX_PATH_LEN = 200
 !  character(len=*), parameter :: DEFAULT_OUTPUT_PATH = "../run/output"
 contains
-  function force(x, m, i, n_objs)
+  function force(x, m, i, n_objs, g, min_dist)
     implicit none
 
     ! For some reason replacing these with the f2py variable declarations
     ! does not work like it does in the other functions
     integer, parameter :: DIMS = 3
     integer, parameter :: REAL_KIND = 8
-    real(kind=REAL_KIND), parameter :: G = 1
-    real(kind=REAL_KIND), parameter :: MIN_DIST = 0.01
+    ! real(kind=REAL_KIND), parameter :: G = 1
+    ! real(kind=REAL_KIND), parameter :: MIN_DIST = 0.01
 
     integer, intent(in) :: i, n_objs
-    real(kind=REAL_KIND), intent(in) :: x(DIMS,n_objs)
-    real(kind=REAL_KIND), intent(in) :: m(n_objs)
+    real(kind=REAL_KIND), intent(in) :: x(DIMS,n_objs), m(n_objs), g, min_dist
 
     real(kind=REAL_KIND) :: force(DIMS), dist
     integer :: j
@@ -36,13 +35,13 @@ contains
     do j=1,n_objs
       dist = sqrt(sum((x(:,i) - x(:,j))**2))
       ! Clipping prevents overflow
-      if (dist > MIN_DIST) then
-        force = force + G*m(i)*m(j)*(x(:,j) - x(:,i)) / dist**3
+      if (dist > min_dist) then
+        force = force + g*m(i)*m(j)*(x(:,j) - x(:,i)) / dist**3
       end if
     end do
   end function force
 
-  subroutine iterate(x, v, a, m, dt, n_steps, n_objs, print_interval, write_interval, path)
+  subroutine iterate(x, v, a, m, dt, n_steps, n_objs, g, min_dist, print_interval, write_interval, path)
     ! Note that on Python side the argument n_objs is optional, since it can be automatically determined from the input arrays
     implicit none
 
@@ -56,8 +55,7 @@ contains
     integer, intent(in), optional :: print_interval, write_interval
     character(len=*), intent(in), optional :: path
     real(kind=REAL_KIND), intent(inout) :: x(DIMS,n_objs), v(DIMS,n_objs), a(DIMS,n_objs)
-    real(kind=REAL_KIND), intent(in) :: m(n_objs)
-    real(kind=REAL_KIND), intent(in) :: dt
+    real(kind=REAL_KIND), intent(in) :: m(n_objs), dt, g, min_dist
 
     integer :: i, iter, print_interval_checked, write_interval_checked, written
     character(len=MAX_PATH_LEN) :: path_checked
@@ -86,7 +84,7 @@ contains
       x = x + v*dt + 0.5*a*dt**2
       do i=1,n_objs
         a_prev = a(:,i)
-        a(:,i) = force(x, m, i, n_objs) / m(i)
+        a(:,i) = force(x, m, i, n_objs, g, min_dist) / m(i)
         v(:,i) = v(:,i) + 0.5*(a(:,i) + a_prev)*dt
       end do
 

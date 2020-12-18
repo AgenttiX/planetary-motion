@@ -8,7 +8,7 @@ program main
 
   character(len=MAX_PATH_LEN) :: config_path, output_path
   real(kind=REAL_KIND), allocatable :: m(:), x(:, :), v(:, :), a(:, :)
-  real(kind=REAL_KIND) :: dt
+  real(kind=REAL_KIND) :: dt, g, min_dist
   integer :: n_steps, n_objs, print_interval, write_interval, ios
 
   ! Argument processing
@@ -17,10 +17,12 @@ program main
   ! Config processing
   print *, "Using configuration file: ", trim(config_path)
   print *, "Output will be written to: ", trim(output_path)
-  call read_config(config_path, x, v, m, dt, n_steps, n_objs, print_interval, write_interval)
+  call read_config(config_path, x, v, m, dt, n_steps, n_objs, g, min_dist, print_interval, write_interval)
   print *, "n_objs: ", n_objs
   print *, "n_steps: ", n_steps
   print *, "dt: ", dt
+  print *, "G: ", g
+  print *, "min_dist: ", min_dist
   print *, "print_interval: ", print_interval
   print *, "write_interval: ", write_interval
   call print_arr_2d(x, "x")
@@ -42,5 +44,5 @@ program main
   end if
 
   print *, "Simulating"
-  call iterate(x, v, a, m, dt, n_steps, n_objs, print_interval, write_interval, output_path)
+  call iterate(x, v, a, m, dt, n_steps, n_objs, g, min_dist, print_interval, write_interval, output_path)
 end program main

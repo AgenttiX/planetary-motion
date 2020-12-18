@@ -134,7 +134,7 @@ contains
     close(CONFIG_FILE_UNIT)
   end function read_file_to_arr
 
-  subroutine read_config(path, x, v, m, dt, n_steps, n_objs, print_interval, write_interval)
+  subroutine read_config(path, x, v, m, dt, n_steps, n_objs, g, min_dist, print_interval, write_interval)
     use core
     implicit none
     !f2py integer, intent(aux) :: REAL_KIND
@@ -144,7 +144,7 @@ contains
     real(kind=REAL_KIND), allocatable, intent(out) :: m(:), x(:, :), v(:, :)
     real(kind=REAL_KIND), intent(out) :: dt
 
-    real(kind=REAL_KIND) :: t
+    real(kind=REAL_KIND) :: t, g, min_dist
     character(len=MAX_LINE_LEN) line, trimmed, name, value, current_array
     integer :: ios, i_line, arrays_started, scalars_started, delim_pos, arrays_allocated, array_index
 
@@ -162,8 +162,10 @@ contains
     end if
 
     ! Actual reading
+    g = -1
     t = -1
     dt = -1
+    min_dist = -1
     n_objs = -1
     n_steps = -1
     print_interval = 0
@@ -224,6 +226,10 @@ contains
           read(value, *, iostat=ios) dt
         else if (name == "t") then
           read(value, *, iostat=ios) t
+        else if (name == "G") then
+          read(value, *, iostat=ios) g
+        else if (name == "min_dist") then
+          read(value, *, iostat=ios) min_dist
         else if (name == "print_interval") then
           read(value, *, iostat=ios) print_interval
         else if (name == "write_interval") then
