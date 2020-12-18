@@ -9,8 +9,15 @@ Python 3 (tested with Python 3.8) and some packages from
 The recommended way to install these packages is by using
 [pip](https://pip.pypa.io/en/stable/) in a
 [virtualenv](https://docs.python.org/3/library/venv.html).
-When the virtualenv has been set up, the packages can be installed with
-`pip install -r requirements.txt` when in the src folder.
+You can create a virtualenv to the current folder by running
+```python3 -m venv venv```.
+Then you can activate it with
+```source ./venv/bin/activate```
+on Linux and by running the corresponding PowerShell script on Windows.
+Now both the commands `python` and `python3` should point to the Python 3
+installation of the virtualenv in the current shell session.
+When the virtualenv has been set up, the packages can be installed by running
+```pip install -r requirements.txt``` when in the src folder.
 
 When the all the dependencies have been installed, the project can be built by running the
 [build script](build.sh).
@@ -19,8 +26,9 @@ The
 [workflow files](../.github/workflows)
 can be used as an additional template on how to build the project.
 
-Precompiled binaries are available on
-[GitHub](https://github.com/AgenttiX/planetary-motion/actions).
+There are also precompiled binaries are available on
+[GitHub](https://github.com/AgenttiX/planetary-motion/actions), but running the Python code requires the
+installation of the necessary libraries regardless.
 
 <!-- By the way, in my opinion it would be the best to put both build and usage
 documentation in one README file in the root of the repository, since
