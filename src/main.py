@@ -1,15 +1,18 @@
 """
 This is the Python-based main program of planetary-motion.
 It offers broader functionality than the pure Fortran version, with the most notable being plotting.
+
+It should be noted that specifying the configuration for a Fortran-based simulation as a Python file
+is a rather common practice. For other examples please see the CSC cluster configurations in
+https://gitlab.com/AgenttiX/fys-4096
 """
 
 import subprocess
-import typing as tp
+
 
 import numpy as np
 import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-from PySide2 import QtWidgets
+
 
 # Compilation is done automatically here to speed up development
 print("Compiling Fortran code")
@@ -21,70 +24,121 @@ print("\n\n")
 import core
 
 
-class NBodyWidget(gl.GLViewWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setWindowTitle("FYS2085 project: Planetary motion")
-        self.pos: tp.Optional[gl.GLScatterPlotItem] = None
-        self.color = (1, 1, 1, .5)
-        self.create_grids()
-
-    def create_grids(self, size: float = 10):
-        size2 = 2*size
-        vec = pg.QtGui.QVector3D(size2, size2, size2)
-        gx = gl.GLGridItem(size=vec)
-        gx.rotate(90, 0, 1, 0)
-        # gx.translate(-10, 0, 0)
-        self.addItem(gx)
-        gy = gl.GLGridItem(size=vec)
-        gy.rotate(90, 1, 0, 0)
-        # gy.translate(0, -10, 0)
-        self.addItem(gy)
-        gz = gl.GLGridItem(size=vec)
-        # gz.translate(0, 0, -10)
-        self.addItem(gz)
-
-    def set_pos(self, pos):
-        if self.pos is None:
-            self.pos = gl.GLScatterPlotItem(pos=pos, color=self.color)
-            self.addItem(self.pos)
-        else:
-            self.pos.setData(pos=pos, color=self.color)
+from sim import Celestial, Simulation, AU, YEAR_IN_D, YEAR_IN_S
+from gui import MainWindow
 
 
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.nbody = NBodyWidget()
-        self.setCentralWidget(self.nbody)
-        self.resize(1280, 720)
+# Solar system
+# These values are from Wikipedia
+
+sun = Celestial(
+    x=0,
+    v=0,
+    m=1.9885e30,
+    radius=695700,
+    color=(255, 230, 0),
+)
+mercury = Celestial(
+    x=57909050,
+    v=47.362,
+    m=3.3011e23,
+    radius=2439.7,
+    color=(180, 170, 150),
+    reference=sun,
+    period=0.240846
+)
+venus = Celestial(
+    x=108208000,
+    v=35.02,
+    m=48675e24,
+    radius=6051.8,
+    color=(250, 190, 40),
+    reference=sun,
+    period=0.615198
+)
+earth = Celestial(
+    x=149598023,
+    v=29.78,
+    m=5972.34e24,
+    radius=6371.0,
+    color=(25, 180, 200),
+    reference=sun,
+    # Let's ignore all the nasty precession stuff
+    period=1
+)
+moon = Celestial(
+    x=384399,
+    v=1.022,
+    m=7.342e22,
+    radius=1737.4,
+    color=(160, 160, 160),
+    reference=earth,
+    period=27.321661 / YEAR_IN_D
+)
+mars = Celestial(
+    x=227949200,
+    v=24.007,
+    m=6.4171e23,
+    radius=3389.5,
+    color=(240, 130, 60),
+    reference=sun,
+    period=1.88082
+)
+jupiter = Celestial(
+    x=778.57e6,
+    v=13.07,
+    m=1.8982e27,
+    radius=69911,
+    color=(230, 180, 160),
+    reference=sun,
+    period=11.862
+)
+saturn = Celestial(
+    x=1433.53e6,
+    v=9.68,
+    m=5.6834,
+    radius=58232,
+    color=(220, 220, 130),
+    reference=sun,
+    period=29.4571
+)
+uranus = Celestial(
+    x=2875.04e9,
+    v=6.8,
+    m=8.6810e25,
+    radius=25362,
+    color=(140, 240, 220),
+    reference=sun,
+    period=84.0205
+)
+# Nep nep!
+neptune = Celestial(
+    x=30.07*AU,
+    v=5.43,
+    m=1.02413e26,
+    radius=24622,
+    color=(110, 120, 220),
+    reference=sun,
+    period=164.8
+)
+solar_system = [sun, mercury, venus, earth, mars, jupiter, saturn, neptune]
 
 
-class Celestial:
-    def __init__(
-            self,
-            x: tp.Union[np.ndarray, float],
-            m: float,
-            radius: float,
-            color: tp.Tuple[int, int, int],
-            reference: "Celestial",
-            x_min: float,
-            x_max: float,
-            texture_low: str = None,
-            texture_high: str = None,
-    ):
-        if isinstance(x, (int, float)):
-            self.x = np.array([x, 0, 0])
-        else:
-            self.x = x
-        self.m = m
-        self.radius = radius
-        self.color = color
-        self.texture_low = texture_low
-        self.texture_high = texture_high
+def show_simulation(sim: Simulation):
+    sim.print()
+    app = pg.mkQApp()
+    win = MainWindow(sim)
+    win.show()
+    app.exec_()
 
 
-def main():
+def part_1a():
+    sim = Simulation([sun, jupiter], dt=0.1*YEAR_IN_S)
+    sim.run(steps=1000, save_interval=100)
+    show_simulation(sim)
+
+
+def nbody_test():
     print("Starting")
     n_objs = 10
     dt = 0.1
@@ -97,16 +151,9 @@ def main():
     m = np.ones(n_objs, order="F")
 
     print("x")
-    print(x)
+    print(x.T)
     print(core.core.iterate.__doc__)
     # core.core.iterate(x, v, a, m, dt, 1)
-
-    print("x")
-    print(x)
-    print("v")
-    print(v)
-    print("a")
-    print(a)
 
     app = pg.mkQApp()
     win = MainWindow()
@@ -114,7 +161,7 @@ def main():
     win.nbody.set_pos(x.T)
 
     def update():
-        core.core.iterate(x, v, a, m, dt, 1)
+        core.core.iterate(x, v, a, m, dt, 1, g=1, min_dist=1)
         win.nbody.set_pos(x.T)
 
     timer = pg.QtCore.QTimer()
@@ -123,6 +170,14 @@ def main():
 
     app.exec_()
 
+    print("x")
+    print(x.T)
+    print("v")
+    print(v.T)
+    print("a")
+    print(a.T)
+
 
 if __name__ == "__main__":
-    main()
+    # nbody_test()
+    part_1a()
