@@ -70,3 +70,11 @@ jobs:
       # - name: Run
       #   run: python main.py
       #   working-directory: ${{ github.workspace }}/analysis
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          name: Build
+          path: |
+            ${{ github.workspace }}/src/planetary-motion
+            ${{ github.workspace }}/src/*.so
+          if-no-files-found: error

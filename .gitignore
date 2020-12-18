@@ -50,5 +50,7 @@ venv
 *.run.xml
 main.pdf
 
-# Program output
+# Program and its output
+fort.*
 output
+planetary-motion
