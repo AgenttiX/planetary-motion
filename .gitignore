@@ -49,3 +49,6 @@ venv
 *.log
 *.run.xml
 main.pdf
+
+# Program output
+output

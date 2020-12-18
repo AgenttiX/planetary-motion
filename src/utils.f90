@@ -6,11 +6,11 @@
 ! https://www.geeksforgeeks.org/read-a-file-line-by-line-in-python/
 
 module utils
-  integer, parameter :: DIMS = 3
-  integer, parameter :: FILE_UNIT = 10
+  ! integer, parameter :: DIMS = 3
+  ! integer, parameter :: REAL_KIND = 8
+  integer, parameter :: CONFIG_FILE_UNIT = 10
   integer, parameter :: MAX_LINE_LEN = 100
-  integer, parameter :: REAL_KIND = 8
-  character(len=*), parameter :: DEFAULT_PATH = "../run/config.txt"
+  character(len=*), parameter :: DEFAULT_CONFIG_PATH = "../run/config.txt"
 contains
   integer function bool2int(val)
     logical, intent(in) :: val
@@ -21,60 +21,39 @@ contains
     end if
   end function bool2int
 
-  function get_path() result(path)
+  subroutine get_paths(config_path, output_path)
+    use core
     implicit none
     integer :: ios, num_args
-    character(:), allocatable :: path
+    character(len=*) :: config_path, output_path
 
     num_args = command_argument_count()
     if (num_args < 0) then
       print *, "Error when querying number of command line arguments"
       stop
-    else if (num_args > 1) then
+    else if (num_args > 2) then
       print *,"Too many arguments"
       stop
-    else if (num_args == 1) then
-      call get_command_argument(1, path, status=ios)
+    end if
+
+    if (num_args > 0) then
+      call get_command_argument(1, config_path, status=ios)
       if (ios /= 0) then
-        print *, "Error when fetching command line argument"
-        stop
+        print *, "Error when parsing config path"
       end if
     else
-      path = DEFAULT_PATH
+      config_path = DEFAULT_CONFIG_PATH
     end if
-  end function get_path
 
-  subroutine print_arr_1d(arr, name)
-    implicit none
-    real(kind=REAL_KIND), intent(in) :: arr(:)
-    character(len=*), intent(in), optional :: name
-
-    integer :: i
-
-    if(present(name)) then
-      print *, name
+    if (num_args == 2) then
+      call get_command_argument(2, output_path, status=ios)
+      if (ios /= 0) then
+        print *, "Error when parsing output path"
+      end if
+    else
+      output_path = DEFAULT_OUTPUT_PATH
     end if
-    do i=1, size(arr)
-      print *, arr(i)
-    end do
-  end subroutine print_arr_1d
-
-  subroutine print_arr_2d(arr, name)
-    implicit none
-    real(kind=REAL_KIND), intent(in) :: arr(:, :)
-    character(len=*), intent(in), optional :: name
-
-    integer :: arr_shape(2)
-    integer :: i
-    arr_shape = shape(arr)
-
-    if(present(name)) then
-      print *, name
-    end if
-    do i=1, arr_shape(2)
-      print *, arr(:, i)
-    end do
-  end subroutine
+  end subroutine get_paths
 
 !  integer function find_line_number(unit, search_str) result(line_num)
 !    implicit none
@@ -108,13 +87,13 @@ contains
     character(len=*), intent(in) :: path
     integer :: ios
     n = 0
-    open(unit=FILE_UNIT, file=path, status="old", iostat=ios)
+    open(unit=CONFIG_FILE_UNIT, file=path, status="old", iostat=ios)
     if (ios /= 0) then
       n = -1
       return
     end if
     do
-      read(FILE_UNIT, *, iostat=ios)
+      read(CONFIG_FILE_UNIT, *, iostat=ios)
       if (ios > 0) then
         n = -2
         return
@@ -123,7 +102,7 @@ contains
       end if
       n = n + 1
     end do
-    close(FILE_UNIT)
+    close(CONFIG_FILE_UNIT)
   end function get_num_lines
 
   integer function read_file_to_arr(path, file) result(ret)
@@ -138,21 +117,24 @@ contains
       return
     end if
     allocate(file(1:n_lines))
-    open(unit=FILE_UNIT, file=path, status="old", iostat=ios)
+    open(unit=CONFIG_FILE_UNIT, file=path, status="old", iostat=ios)
     do i=1, n_lines
-      read(FILE_UNIT, *, iostat=ios) file(i)
+      read(CONFIG_FILE_UNIT, *, iostat=ios) file(i)
       if(ios /= 0) then
         ret = -1
         return
       end if
     end do
-    close(FILE_UNIT)
+    close(CONFIG_FILE_UNIT)
   end function read_file_to_arr
 
-  subroutine read_file(path, x, v, m, dt, n_steps, n_objs, print_interval)
+  subroutine read_config(path, x, v, m, dt, n_steps, n_objs, print_interval, write_interval)
+    use core
     implicit none
+    !f2py integer, intent(aux) :: REAL_KIND
+
     character(len=*), intent(in) :: path
-    integer, intent(out) :: n_objs, n_steps, print_interval
+    integer, intent(out) :: n_objs, n_steps, print_interval, write_interval
     real(kind=REAL_KIND), allocatable, intent(out) :: m(:), x(:, :), v(:, :)
     real(kind=REAL_KIND), intent(out) :: dt
 
@@ -160,14 +142,14 @@ contains
     character(len=MAX_LINE_LEN) line, trimmed, name, value, current_array
     integer :: ios, i_line, arrays_started, scalars_started, delim_pos, arrays_allocated, array_index
 
-    open(unit=FILE_UNIT, file=path, status="old", iostat=ios)
+    open(unit=CONFIG_FILE_UNIT, file=path, status="old", iostat=ios)
     if (ios /= 0) then
       print *, "Opening the file failed"
       stop
     end if
 
     ! Header check
-    read(FILE_UNIT, "(a)", iostat=ios) line
+    read(CONFIG_FILE_UNIT, "(a)", iostat=ios) line
     if (ios /= 0 .or. line /= "planetary-motion configuration") then
       print *, "Invalid header in file: ", path
       stop
@@ -179,6 +161,7 @@ contains
     n_objs = -1
     n_steps = -1
     print_interval = 0
+    write_interval = 0
 
     i_line = 0
     scalars_started = 0
@@ -188,7 +171,7 @@ contains
     array_index = 0
     do
       i_line = i_line + 1
-      read(FILE_UNIT, "(a)", iostat=ios) line
+      read(CONFIG_FILE_UNIT, "(a)", iostat=ios) line
       ! Check for errors and end of file
       if (ios > 0) then
         print *,"Could not read line ", i_line
@@ -235,7 +218,12 @@ contains
           read(value, *, iostat=ios) dt
         else if (name == "t") then
           read(value, *, iostat=ios) t
+        else if (name == "print_interval") then
+          read(value, *, iostat=ios) print_interval
+        else if (name == "write_interval") then
+          read(value, *, iostat=ios) write_interval
         end if
+
         if (ios /= 0) then
           print *, "Could not convert value to correct type on configuration line: ", line
         end if
@@ -274,7 +262,7 @@ contains
         end if
       end if
     end do
-    close(FILE_UNIT)
+    close(CONFIG_FILE_UNIT)
 
     ! Post-processing and checks
     if (bool2int(dt > 0) + bool2int(t > 0) + bool2int(n_steps > 0) /= 2) then
@@ -287,5 +275,5 @@ contains
       n_steps = nint(t / dt)
     end if
 
-  end subroutine read_file
+  end subroutine read_config
 end module utils

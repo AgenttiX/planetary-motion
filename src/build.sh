@@ -1,7 +1,7 @@
-#!/usr/bin/sh -e
+#!/bin/sh -e
 echo "Building Fortran code"
-gfortran -c cmd_line.f90
 gfortran -c core.f90
+gfortran -c cmd_line.f90
 gfortran -c utils.f90
 gfortran -c main.f90
 gfortran cmd_line.o core.o utils.o main.o
