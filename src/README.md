@@ -18,6 +18,11 @@ Now both the commands `python` and `python3` should point to the Python 3
 installation of the virtualenv in the current shell session.
 When the virtualenv has been set up, the packages can be installed by running
 ```pip install -r requirements.txt``` when in the src folder.
+Alternatively you can use an IDE such as
+[PyCharm](https://www.jetbrains.com/pycharm/), which will take care of the virtualenv and libraries for you.
+However, since the requirements.txt is not at the root of this project, you may have to set its location
+manually in the settings at
+Tools &rarr; Python Integrated Tools &rarr; Packaging &rarr; Package requirements file.
 
 When the all the dependencies have been installed, the project can be built by running the
 [build script](build.sh).
