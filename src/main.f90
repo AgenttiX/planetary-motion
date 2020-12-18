@@ -13,5 +13,7 @@ program main
   path = get_path()
   print *, path
   call read_file(path, x, v, m, dt, n_steps, n_objs)
+  call print_arr_2d(x, "x")
+  call print_arr_2d(v, "v")
 
 end program main

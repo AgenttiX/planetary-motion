@@ -1,4 +1,5 @@
-! If this weren't a course project, I would have used Python or some existing Fortran library for the
+! If this weren't a course project with the implicit requirement of doing everything ourselves,
+! I would have used Python or some existing Fortran library for the
 ! command line argument parsing, as Fortran isn't designed for these kind of things.
 ! http://fortranwiki.org/fortran/show/Command-line+arguments
 
