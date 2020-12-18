@@ -1,0 +1,46 @@
+planetary-motion configuration
+# This file format is supposed to somewhat resemble ini files
+# https://en.wikipedia.org/wiki/INI_file
+
+[scalars]
+n_objs = 10
+n_steps = 100
+dt = 1
+print_interval = 10
+
+[arrays]
+m
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+x
+0 0 0
+1 1 1
+2 0 0
+3 0 0
+4 0 0
+5 0 0
+6 0 0
+7 0 0
+8 0 0
+9 0 0
+
+v
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 1 0
