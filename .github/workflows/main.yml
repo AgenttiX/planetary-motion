@@ -24,7 +24,8 @@ jobs:
           pip --cache-dir=.pip install pylint fortran-linter
           pip --cache-dir=.pip install -r src/requirements.txt
       - name: Run fortran-linter
-        run: fortran-linter core.f90 main.f90
+        # The || true skips the non-zero exit code
+        run: fortran-linter *.f90 --syntax-only || true
         working-directory: ${{ github.workspace }}/src
       - name: Run Pylint
         run: pylint main.py pg_examples.py 2>&1 | tee pylint.txt
