@@ -24,7 +24,7 @@ print("\n\n")
 import core
 
 
-from sim import Celestial, Simulation, AU, YEAR_IN_D, YEAR_IN_S
+from sim import Celestial, Simulation, AU, YEAR_IN_D, YEAR_IN_S, G
 from gui import MainWindow
 
 
@@ -35,78 +35,78 @@ sun = Celestial(
     x=0,
     v=0,
     m=1.9885e30,
-    radius=695700,
+    radius=695700e3,
     color=(255, 230, 0),
 )
 mercury = Celestial(
-    x=57909050,
-    v=47.362,
+    x=57909050e3,
+    v=47.362e3,
     m=3.3011e23,
-    radius=2439.7,
+    radius=2439.7e3,
     color=(180, 170, 150),
     reference=sun,
     period=0.240846
 )
 venus = Celestial(
-    x=108208000,
-    v=35.02,
+    x=108208000e3,
+    v=35.02e3,
     m=48675e24,
-    radius=6051.8,
+    radius=6051.8e3,
     color=(250, 190, 40),
     reference=sun,
     period=0.615198
 )
 earth = Celestial(
-    x=149598023,
-    v=29.78,
+    x=149598023e3,
+    v=29.78e3,
     m=5972.34e24,
-    radius=6371.0,
+    radius=6371.0e3,
     color=(25, 180, 200),
     reference=sun,
     # Let's ignore all the nasty precession stuff
     period=1
 )
 moon = Celestial(
-    x=384399,
-    v=1.022,
+    x=384399e3,
+    v=1.022e3,
     m=7.342e22,
-    radius=1737.4,
+    radius=1737.4e3,
     color=(160, 160, 160),
     reference=earth,
     period=27.321661 / YEAR_IN_D
 )
 mars = Celestial(
-    x=227949200,
-    v=24.007,
+    x=227949200e3,
+    v=24.007e3,
     m=6.4171e23,
-    radius=3389.5,
+    radius=3389.5e3,
     color=(240, 130, 60),
     reference=sun,
     period=1.88082
 )
 jupiter = Celestial(
-    x=778.57e6,
-    v=13.07,
+    x=778.57e6*1e3,
+    v=13.07e3,
     m=1.8982e27,
-    radius=69911,
+    radius=69911e3,
     color=(230, 180, 160),
     reference=sun,
     period=11.862
 )
 saturn = Celestial(
-    x=1433.53e6,
-    v=9.68,
+    x=1433.53e6*1e3,
+    v=9.68e3,
     m=5.6834,
-    radius=58232,
+    radius=58232e3,
     color=(220, 220, 130),
     reference=sun,
     period=29.4571
 )
 uranus = Celestial(
-    x=2875.04e9,
-    v=6.8,
+    x=2875.04e9*1e3,
+    v=6.8e3,
     m=8.6810e25,
-    radius=25362,
+    radius=25362e3,
     color=(140, 240, 220),
     reference=sun,
     period=84.0205
@@ -114,9 +114,9 @@ uranus = Celestial(
 # Nep nep!
 neptune = Celestial(
     x=30.07*AU,
-    v=5.43,
+    v=5.43e3,
     m=1.02413e26,
-    radius=24622,
+    radius=24622e3,
     color=(110, 120, 220),
     reference=sun,
     period=164.8
@@ -124,18 +124,24 @@ neptune = Celestial(
 solar_system = [sun, mercury, venus, earth, mars, jupiter, saturn, neptune]
 
 
-def show_simulation(sim: Simulation):
+def show_simulation(sim: Simulation, unit_mult: float = 1):
     sim.print()
     app = pg.mkQApp()
-    win = MainWindow(sim)
+    win = MainWindow(sim, unit_mult=unit_mult)
     win.show()
     app.exec_()
 
 
 def part_1a():
-    sim = Simulation([sun, jupiter], dt=0.1*YEAR_IN_S)
+    sim = Simulation([sun, jupiter], dt=1*YEAR_IN_S, g=G)
     sim.run(steps=1000, save_interval=100)
-    show_simulation(sim)
+    show_simulation(sim, unit_mult=AU)
+
+
+def part_3():
+    sim = Simulation(solar_system, dt=0.1*YEAR_IN_S, g=G)
+    sim.run(steps=1000, save_interval=100)
+    show_simulation(sim, unit_mult=AU)
 
 
 def nbody_test():
@@ -178,6 +184,21 @@ def nbody_test():
     print(a.T)
 
 
+def nbody_test2():
+    celestials = [Celestial(
+        x=2*np.random.rand(3) - 1,
+        v=(2*np.random.rand(3) - 1)*0.1,
+        m=1,
+        color=tuple(np.random.randint(100, 255, (3,))),
+        radius=1
+    ) for _ in range(10)]
+
+    sim = Simulation(celestials, dt=0.1, g=1)
+    sim.run(steps=10000, save_interval=100)
+    show_simulation(sim)
+
+
 if __name__ == "__main__":
     # nbody_test()
+    # nbody_test2()
     part_1a()

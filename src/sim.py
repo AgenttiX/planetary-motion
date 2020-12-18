@@ -31,10 +31,10 @@ class Celestial:
     ):
         """
         A celestial object
-        :param x: position (km)
-        :param v: velocity (km/s)
+        :param x: position (m)
+        :param v: velocity (m/s)
         :param m: mass (kg)
-        :param radius: (km)
+        :param radius: (m)
         :param color: RGB color tuple
         :param reference: reference object for the position and velocity
         :param period: orbital period (years)
@@ -59,13 +59,13 @@ class Celestial:
 
 
 class Simulation:
-    def __init__(self, celestials: tp.List[Celestial], dt: float, g: float = G):
+    def __init__(self, celestials: tp.List[Celestial], dt: float, g: float = 1):
         self.celestials = celestials
         self.g = g
         self.dt = dt
 
-        self.x = np.asfortranarray(np.array([cel.x for cel in celestials]).T) * 1e3
-        self.v = np.asfortranarray(np.array([cel.v for cel in celestials]).T) * 1e3
+        self.x = np.asfortranarray(np.array([cel.x for cel in celestials]).T)
+        self.v = np.asfortranarray(np.array([cel.v for cel in celestials]).T)
         self.m = np.array([cel.m for cel in celestials], order="F")
         self.a = np.zeros_like(self.x)
 
