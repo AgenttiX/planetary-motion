@@ -10,6 +10,7 @@ https://gitlab.com/AgenttiX/fys-4096
 import subprocess
 
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
 
@@ -132,10 +133,73 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
     app.exec_()
 
 
+def period_from_crossings(signal, dt):
+    """
+    Based on
+    https://gist.github.com/endolith/255291
+    """
+    # Find all indices right before a rising-edge zero crossing
+    indices = np.nonzero((signal[1:] >= 0) & (signal[:-1] < 0))[0]
+    crossings = [i - signal[i] / (signal[i + 1] - signal[i]) for i in indices]
+    print(indices)
+    print(crossings)
+    return dt*np.mean(np.diff(crossings))
+
+
 def part_1a():
-    sim = Simulation([sun, jupiter], dt=1*YEAR_IN_S, g=G, fix_scale=True)
-    sim.run(steps=1000, save_interval=100)
-    show_simulation(sim, unit_mult=AU)
+    dts = np.linspace(0.01, 0.1, 20)*YEAR_IN_S
+    save_interval = 100
+    period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
+
+    periods = np.zeros_like(dts)
+    for i in range(dts.size):
+        dt = dts[i]
+        sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
+        # show_simulation(sim, unit_mult=AU)
+        sim.run(steps=10000, save_interval=save_interval)
+        jupiter_pos = np.array(sim.x_hist)[:, :, 1]
+        jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
+        # t_arr = dt*save_interval*np.arange(len(sim.x_hist)) / YEAR_IN_S
+        period = period_from_crossings(jupiter_angle, dt*save_interval) / YEAR_IN_S
+        periods[i] = period
+        print(f"dt = {dt / YEAR_IN_S} years, true period: {period_true} years, simulated: {period} years")
+
+        # fig: plt.Figure = plt.figure()
+        # ax: plt.Axes = fig.add_subplot()
+        # ax.plot(t_arr, jupiter_angle)
+        # ax.set_xlabel("t (years)")
+        # ax.set_ylabel(r"$\sin(\theta)$")
+
+    fig: plt.Figure = plt.figure()
+    ax: plt.Axes = fig.add_subplot()
+    ax.plot(dts / YEAR_IN_S, periods)
+    ax.axhline(period_true)
+    ax.set_xlabel("Timestep (years)")
+    ax.set_ylabel("Period (years)")
+    fig.savefig("../report/fig_1a.eps")
+
+
+def part_1b():
+    period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
+    steps = 300
+    save_interval = 10
+    dt = period_true / steps * YEAR_IN_S
+    print("dt", dt / YEAR_IN_S)
+
+    sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
+    sim.run(steps=steps, save_interval=save_interval)
+    jupiter_pos = np.array(sim.x_hist)[:, :, 1]
+    jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
+    # print(jupiter_angle)
+    t_arr = dt * save_interval * np.arange(len(sim.x_hist)) / YEAR_IN_S
+
+    fig: plt.Figure = plt.figure()
+    ax: plt.Axes = fig.add_subplot()
+    ax.plot(t_arr, jupiter_angle)
+    ax.set_xlabel("t (years)")
+    ax.set_ylabel(r"$\sin(\theta)$")
+
+    print(f"Jupiter angle: {np.arcsin(jupiter_angle[-1])*180/np.pi} deg")
 
 
 def part_3():
@@ -202,4 +266,7 @@ if __name__ == "__main__":
     # nbody_test()
     # nbody_test2()
     # part_1a()
-    part_3()
+    part_1b()
+    # part_3()
+
+    plt.show()

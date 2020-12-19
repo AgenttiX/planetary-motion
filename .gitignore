@@ -49,6 +49,9 @@ venv
 *.fls
 *.log
 *.run.xml
+*.synctex.gz
+*.toc
+*converted-to.pdf
 main.pdf
 
 # Program and its output

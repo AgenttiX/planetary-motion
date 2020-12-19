@@ -11,7 +11,6 @@ from sim import Simulation
 class NBodyWidget(gl.GLViewWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setWindowTitle("FYS2085 project: Planetary motion")
         self.pos: tp.Optional[gl.GLScatterPlotItem] = None
         self.color = (1, 1, 1, .5)
         # self.create_grids()
@@ -50,11 +49,19 @@ class NBodyWidget(gl.GLViewWidget):
             self.pos.setData(pos=pos, **kwargs)
 
 
+class NBodyWidget2D(pg.GraphicsWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pos: tp.Optional[pg.ScatterPlotItem] = None
+        self.color = (1, 1, 1, .5)
+
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, sim: Simulation, *args, unit_mult: float = 1, **kwargs):
         super().__init__(*args, **kwargs)
 
         # UI creation
+        self.setWindowTitle("FYS2085 project: Planetary motion")
         self.resize(1280, 720)
         cw = QtWidgets.QWidget()
         self.setCentralWidget(cw)
@@ -81,17 +88,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.nbody.create_grids(1)
         self.nbody.setCameraPosition(distance=1)
         sim_len = len(self.sim.x_hist)
-        self.slider.setSliderPosition(0)
         self.slider.setRange(0, sim_len-1)
         self.slider.setRange(0, sim_len-1)
         self.slider.setSingleStep(1)
         self.slider.setTickInterval(1)
+        self.slider.setSliderPosition(0)
 
         self.redraw(0)
 
     def redraw(self, hist_ind: int):
         x = self.sim.x_hist[hist_ind] / self.unit_mult
         # self.nbody.set_pos(x, color=self.colors, size=self.sizes)
-        print("x", hist_ind)
-        print(x.T)
+        # print("x", hist_ind)
+        # print(x.T)
         self.nbody.set_pos(x.T, color=self.colors)

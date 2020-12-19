@@ -89,8 +89,8 @@ class Simulation:
             # self.g = 1.195e-4
             self.g = M_EARTH / M_SUN * (V_EARTH * YEAR_IN_S / AU)**2
 
-            print("Periods in years")
-            print(2*np.pi*self.x[0, :] / self.v[1, :])
+            # print("Periods in years")
+            # print(2*np.pi*self.x[0, :] / self.v[1, :])
 
         self.min_dist = 1e-4*np.min(np.abs(self.x))
         self.x_hist = []
