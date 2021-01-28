@@ -1,6 +1,7 @@
 <!-- This is a Markdown file and is best viewed with a suitable program such as Okular -->
 
 # FYS2085 project work: planetary motion
+## Work in progress
 ![CI](https://github.com/AgenttiX/planetary-motion/workflows/CI/badge.svg)
 ![LaTeX build](https://github.com/AgenttiX/planetary-motion/workflows/LaTeX%20build/badge.svg)
 
