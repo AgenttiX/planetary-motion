@@ -3,7 +3,11 @@ import typing as tp
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-from PySide2 import QtCore, QtGui, QtWidgets
+try:
+    from PySide6 import QtCore, QtGui, QtWidgets
+except ImportError:
+    print("Warning: PySide6 not found. Falling back to PySide2.")
+    from PySide2 import QtCore, QtGui, QtWidgets
 
 from sim import Simulation
 
