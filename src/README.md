@@ -24,8 +24,8 @@ However, since the requirements.txt is not at the root of this project, you may 
 manually in the settings at
 Tools &rarr; Python Integrated Tools &rarr; Packaging &rarr; Package requirements file.
 
-When the all the dependencies have been installed, the project can be built by running the
-[build script](build.sh).
+When the all the dependencies have been installed, the project can be built by running ```make all```.
+(Personally I would prefer to use a bash script instead, but the use of ```make``` is said to give bonus points.)
 The
 [GitHub Actions](https://github.com/features/actions)
 [workflow files](../.github/workflows)

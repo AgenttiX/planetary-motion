@@ -17,7 +17,7 @@ import pyqtgraph as pg
 
 # Compilation is done automatically here to speed up development
 print("Compiling Fortran code")
-subprocess.run(["./build.sh"], check=True)
+subprocess.run(["make", "all"], check=True)
 print("Fortran code compiled")
 print("\n\n")
 
