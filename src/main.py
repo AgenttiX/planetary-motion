@@ -141,7 +141,9 @@ def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     # Find all indices right before a rising-edge zero crossing
     indices = np.nonzero((signal[1:] >= 0) & (signal[:-1] < 0))[0]
     crossings = [i - signal[i] / (signal[i + 1] - signal[i]) for i in indices]
+    print("Indices:")
     print(indices)
+    print("Crossings:")
     print(crossings)
     return dt*np.mean(np.diff(crossings))
 
