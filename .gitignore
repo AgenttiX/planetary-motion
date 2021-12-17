@@ -48,10 +48,12 @@ venv
 *.fdb_latexmk
 *.fls
 *.log
+*.lua
 *.run.xml
 *.synctex.gz
 *.toc
 *converted-to.pdf
+*.md.tex
 main.pdf
 
 # Program and its output
