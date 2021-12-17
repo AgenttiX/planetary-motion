@@ -13,6 +13,6 @@ jobs:
           working_directory: report
       - uses: actions/upload-artifact@v2
         with:
-          name: pap328-report
+          name: fys2085-report
           path: report/main.pdf
           if-no-files-found: error
