@@ -125,13 +125,7 @@ neptune = Celestial(
 solar_system = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
 
 
-def show_simulation(sim: Simulation, unit_mult: float = 1):
-    sim.print()
-    app = pg.mkQApp()
-    win = MainWindow(sim, unit_mult=unit_mult)
-    win.show()
-    app.exec()
-
+# Utility methods
 
 def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     """
@@ -148,7 +142,16 @@ def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     return dt*np.mean(np.diff(crossings))
 
 
-def part_1a():
+def show_simulation(sim: Simulation, unit_mult: float = 1):
+    sim.print()
+    app = pg.mkQApp()
+    win = MainWindow(sim, unit_mult=unit_mult)
+    win.show()
+    app.exec()
+
+
+# Problem solutions
+
     dts = np.linspace(0.01, 0.1, 100)*YEAR_IN_S
     save_interval = 100
     period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
