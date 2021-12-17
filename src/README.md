@@ -7,7 +7,7 @@ Building the Fortran part of this project requires a Fortran compiler such as
 [gfortran](https://gcc.gnu.org/wiki/GFortran).
 
 Building the Python part of this project requires
-Python 3 (tested with Python 3.8) and some packages from
+Python 3 (tested with Python 3.9) and some packages from
 [PyPI](https://pypi.org/).
 The recommended way to install these packages is by using
 [pip](https://pip.pypa.io/en/stable/) in a
