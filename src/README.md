@@ -34,7 +34,7 @@ The
 [workflow files](../.github/workflows)
 can be used as an additional template on how to build the project.
 
-There are also precompiled binaries are available on
+There are also precompiled binaries available on
 [GitHub](https://github.com/AgenttiX/planetary-motion/actions), but running the Python code requires the
 installation of the necessary libraries regardless.
 
