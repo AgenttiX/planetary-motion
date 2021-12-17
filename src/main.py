@@ -9,7 +9,7 @@ https://gitlab.com/AgenttiX/fys-4096
 
 import subprocess
 
-
+import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
@@ -64,7 +64,7 @@ earth = Celestial(
     radius=6371.0e3,
     color=(25, 180, 200),
     reference=sun,
-    # Let's ignore all the nasty precession stuff
+    # Let's ignore all the nasty precession stuff.
     period=1
 )
 moon = Celestial(
@@ -130,10 +130,10 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
     app = pg.mkQApp()
     win = MainWindow(sim, unit_mult=unit_mult)
     win.show()
-    app.exec_()
+    app.exec()
 
 
-def period_from_crossings(signal, dt):
+def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     """
     Based on
     https://gist.github.com/endolith/255291
@@ -147,7 +147,7 @@ def period_from_crossings(signal, dt):
 
 
 def part_1a():
-    dts = np.linspace(0.01, 0.1, 20)*YEAR_IN_S
+    dts = np.linspace(0.01, 0.1, 100)*YEAR_IN_S
     save_interval = 100
     period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
 
@@ -172,34 +172,67 @@ def part_1a():
 
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
-    ax.plot(dts / YEAR_IN_S, periods)
-    ax.axhline(period_true)
+    ax.plot(dts / YEAR_IN_S, periods, label="simulated")
+    ax.axhline(period_true, color="green", label="true", alpha=0.5)
     ax.set_xlabel("Timestep (years)")
     ax.set_ylabel("Period (years)")
+    ax.legend()
     fig.savefig("../report/fig_1a.eps")
+
+    fig2: plt.Figure = plt.figure()
+    ax2: plt.Axes = fig2.add_subplot()
+    ax2.plot(dts / YEAR_IN_S, periods - period_true)
+    ax2.set_yscale("log")
+    ax2.set_xlabel("Timestep (years)")
+    ax2.set_ylabel("Difference from real period (log, years)")
+    fig2.savefig("../report/fig_1a_2.eps")
 
 
 def part_1b():
     period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
-    steps = 300
-    save_interval = 10
-    dt = period_true / steps * YEAR_IN_S
-    print("dt", dt / YEAR_IN_S)
+    steps_arr = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
+    # save_interval = 10
 
-    sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
-    sim.run(steps=steps, save_interval=save_interval)
-    jupiter_pos = np.array(sim.x_hist)[:, :, 1]
-    jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
-    # print(jupiter_angle)
-    t_arr = dt * save_interval * np.arange(len(sim.x_hist)) / YEAR_IN_S
+    angles = []
+    t_arrs = []
+    dts = []
+
+    n = len(steps_arr)
+    for i, steps in enumerate(steps_arr):
+        dt = period_true / steps * YEAR_IN_S
+        dts.append(dt)
+        print("dt", dt / YEAR_IN_S)
+        save_interval = max(1, steps // 100)
+
+        sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
+        sim.run(steps=steps, save_interval=save_interval)
+        jupiter_pos = np.array(sim.x_hist)[:, :, 1]
+        jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
+        # print(jupiter_angle)
+        t_arr = dt * save_interval * np.arange(len(sim.x_hist)) / YEAR_IN_S
+        angles.append(jupiter_angle)
+        t_arrs.append(t_arr)
 
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
-    ax.plot(t_arr, jupiter_angle)
+    cmap = matplotlib.cm.get_cmap("Spectral")
+    for i, (steps, t_arr, angle) in enumerate(zip(steps_arr, t_arrs, angles)):
+        ax.plot(t_arr, angle, label=f"n={steps}", color=cmap(i/n))
     ax.set_xlabel("t (years)")
     ax.set_ylabel(r"$\sin(\theta)$")
+    ax.legend()
 
-    print(f"Jupiter angle: {np.arcsin(jupiter_angle[-1])*180/np.pi} deg")
+    final_angles_rad = np.arcsin([angle[-1] for angle in angles])*180/np.pi
+    for (steps, angle) in zip(steps_arr, final_angles_rad):
+        print(f"Steps: {steps}, Jupiter angle: {angle} deg")
+
+    fig2: plt.Figure = plt.figure()
+    ax2: plt.Axes = fig2.add_subplot()
+    ax2.plot(steps_arr, -final_angles_rad)
+    ax2.set_xlabel("steps")
+    ax2.set_ylabel("Final angle (-1*deg, log)")
+    ax2.set_xscale("log")
+    ax2.set_yscale("log")
 
 
 def part_3():
@@ -265,6 +298,7 @@ def nbody_test2():
 if __name__ == "__main__":
     # nbody_test()
     # nbody_test2()
+
     # part_1a()
     part_1b()
     # part_3()
