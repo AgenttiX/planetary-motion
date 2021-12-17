@@ -1,4 +1,7 @@
-<!-- This is a Markdown file and is best viewed with a suitable program such as Okular -->
+<!--
+This is a Markdown file and is best viewed with a suitable program such as Okular.
+These comments should not be visible when viewing this file with a proper program.
+-->
 
 Building the Fortran part of this project requires a Fortran compiler such as
 [gfortran](https://gcc.gnu.org/wiki/GFortran).

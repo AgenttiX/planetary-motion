@@ -1,4 +1,7 @@
-<!-- This is a Markdown file and is best viewed with a suitable program such as Okular -->
+<!--
+This is a Markdown file and is best viewed with a suitable program such as Okular
+These comments should not be visible when viewing this file with a proper program.
+-->
 
 When you have compiled the program using the
 [build instructions](../src/README.md),
