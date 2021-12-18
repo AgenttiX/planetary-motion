@@ -142,6 +142,23 @@ def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     return dt*np.mean(np.diff(crossings))
 
 
+def plot_object(pos: np.ndarray, ax: plt.Axes = None):
+    if ax is None:
+        fig: plt.Figure = plt.figure()
+        ax: plt.Axes = fig.add_subplot()
+    ax.plot(pos[:, 0], pos[:, 1])
+    return ax
+
+
+def plot_system(pos: np.ndarray, ax: plt.Axes = None):
+    if ax is None:
+        fig: plt.Figure = plt.figure()
+        ax: plt.Axes = fig.add_subplot()
+    for i in pos.shape[2]:
+        ax.plot([pos[:, 0, i]], pos[:, 1, i])
+    return ax
+
+
 def show_simulation(sim: Simulation, unit_mult: float = 1):
     sim.print()
     app = pg.mkQApp()
@@ -150,23 +167,46 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
     app.exec()
 
 
+def sin_from_pos(pos: np.ndarray) -> np.ndarray:
+    arr = pos[:, 1] / np.linalg.norm(pos, axis=1)
+
+    # Replace possible nan values from the ends with the nearest values
+    # https://stackoverflow.com/a/9537766/
+    ind = np.where(~np.isnan(arr))[0]
+    first, last = ind[0], ind[-1]
+    arr[:first] = arr[first]
+    arr[last + 1:] = arr[last]
+
+    if np.any(np.isnan(arr)):
+        raise ValueError("The computed sines should not contain nan values.")
+    return arr
+
+
 # Problem solutions
 
+def part_1ac():
     dts = np.linspace(0.01, 0.1, 100)*YEAR_IN_S
     save_interval = 100
     period_true = 2 * np.pi * jupiter.x[0] / jupiter.v[1] / YEAR_IN_S
 
     periods = np.zeros_like(dts)
+    periods_sun = np.zeros_like(dts)
+    radii_sun_au = []
     for i in range(dts.size):
         dt = dts[i]
         sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
         # show_simulation(sim, unit_mult=AU)
         sim.run(steps=10000, save_interval=save_interval)
         jupiter_pos = np.array(sim.x_hist)[:, :, 1]
-        jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
+        jupiter_angle = sin_from_pos(jupiter_pos)
+        sun_pos = np.array(sim.x_hist)[:, :, 0]
+        sun_angle = sin_from_pos(sun_pos)
         # t_arr = dt*save_interval*np.arange(len(sim.x_hist)) / YEAR_IN_S
-        period = period_from_crossings(jupiter_angle, dt*save_interval) / YEAR_IN_S
+        period = period_from_crossings(jupiter_angle, dt * save_interval) / YEAR_IN_S
+        period_sun = period_from_crossings(sun_angle, dt * save_interval) / YEAR_IN_S
         periods[i] = period
+        periods_sun[i] = period_sun
+        radii_sun_au.append(np.linalg.norm(sun_pos, axis=1) / AU)
         print(f"dt = {dt / YEAR_IN_S} years, true period: {period_true} years, simulated: {period} years")
 
         # fig: plt.Figure = plt.figure()
@@ -175,9 +215,12 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
         # ax.set_xlabel("t (years)")
         # ax.set_ylabel(r"$\sin(\theta)$")
 
+        plot_system(pos, ax)
+
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
-    ax.plot(dts / YEAR_IN_S, periods, label="simulated")
+    ax.plot(dts / YEAR_IN_S, periods, label="simulated, Jupiter")
+    ax.plot(dts / YEAR_IN_S, periods_sun, label="simulated, Sun")
     ax.axhline(period_true, color="green", label="true", alpha=0.5)
     ax.set_xlabel("Timestep (years)")
     ax.set_ylabel("Period (years)")
@@ -186,11 +229,22 @@ def show_simulation(sim: Simulation, unit_mult: float = 1):
 
     fig2: plt.Figure = plt.figure()
     ax2: plt.Axes = fig2.add_subplot()
-    ax2.plot(dts / YEAR_IN_S, periods - period_true)
+    ax2.plot(dts / YEAR_IN_S, periods - period_true, label="Jupiter")
+    ax2.plot(dts / YEAR_IN_S, periods_sun - period_true, label="Sun", ls=":")
     ax2.set_yscale("log")
     ax2.set_xlabel("Timestep (years)")
     ax2.set_ylabel("Difference from real period (log, years)")
+    ax2.legend()
     fig2.savefig("../report/fig_1a_2.eps")
+
+    fig3: plt.Figure = plt.figure()
+    ax3: plt.Axes = fig3.add_subplot()
+    ax3.errorbar(dts / YEAR_IN_S, np.mean(radii_sun_au, axis=1), yerr=np.std(radii_sun_au, axis=1), fmt=".", capsize=3)
+    ax3.set_xlabel("Timestep (years)")
+    ax3.set_ylabel("Radius of the motion of the Sun")
+
+    print("Periods (Sun)")
+    print(periods_sun)
 
 
 def part_1b():
@@ -199,6 +253,7 @@ def part_1b():
     # save_interval = 10
 
     angles = []
+    angles_sun = []
     t_arrs = []
     dts = []
 
@@ -213,10 +268,19 @@ def part_1b():
         sim.run(steps=steps, save_interval=save_interval)
         jupiter_pos = np.array(sim.x_hist)[:, :, 1]
         jupiter_angle = jupiter_pos[:, 1] / jupiter.x[0]
+        sun_pos = np.array(sim.x_hist)[:, :, 0]
+        sun_angle = sun_pos[:, 1] / np.linalg.norm(sun_pos[:, :], axis=1)
         # print(jupiter_angle)
         t_arr = dt * save_interval * np.arange(len(sim.x_hist)) / YEAR_IN_S
         angles.append(jupiter_angle)
+        angles_sun.append(sun_angle)
         t_arrs.append(t_arr)
+
+    part1b_plot(steps_arr, t_arrs, angles)
+
+
+def part1b_plot(steps_arr, t_arrs, angles):
+    n = len(steps_arr)
 
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
@@ -304,8 +368,8 @@ if __name__ == "__main__":
     # nbody_test()
     # nbody_test2()
 
-    # part_1a()
-    part_1b()
+    part_1ac()
+    # part_1b()
     # part_3()
 
     plt.show()
