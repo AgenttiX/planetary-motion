@@ -64,11 +64,12 @@ class Celestial:
 
 
 class Simulation:
-    def __init__(self, celestials: tp.List[Celestial], dt: float, g: float = 1, fix_scale: bool = False):
+    def __init__(self, celestials: tp.List[Celestial], dt: float, g: float = 1, fix_scale: bool = False, fix_total_momentum: bool = True):
         self.celestials = celestials
         self.g = g
         self.dt = dt
         self.fix_scale = fix_scale
+        self.fix_total_momentum = fix_total_momentum
 
         self.x = np.asfortranarray(np.array([cel.x for cel in celestials]).T)
         self.v = np.asfortranarray(np.array([cel.v for cel in celestials]).T)
@@ -91,6 +92,10 @@ class Simulation:
 
             # print("Periods in years")
             # print(2*np.pi*self.x[0, :] / self.v[1, :])
+
+        # TODO: fix this
+        # if self.fix_total_momentum:
+        #     total_p = self.m * self.v
 
         self.min_dist = 1e-4*np.min(np.abs(self.x))
         self.x_hist = []
