@@ -58,5 +58,6 @@ main.pdf
 
 # Program and its output
 fort.*
+logs
 output
 planetary-motion

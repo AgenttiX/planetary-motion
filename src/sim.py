@@ -1,8 +1,11 @@
+import logging
 import typing as tp
 
 import numpy as np
 
 import core
+
+logger = logging.getLogger(__name__)
 
 # Units and constants
 # Astronomical unit

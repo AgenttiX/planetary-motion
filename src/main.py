@@ -7,13 +7,29 @@ is a rather common practice. For other examples please see the CSC cluster confi
 https://gitlab.com/AgenttiX/fys-4096
 """
 
+import logging
+import os.path
 import subprocess
+import time
 
 import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
 
+log_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
+os.makedirs(log_path, exist_ok=True)
+logging.basicConfig(
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(os.path.join(log_path, "log_{}.txt".format(time.strftime("%Y-%m-%d_%H-%M-%S"))))
+    ],
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)-8s %(message)s"
+)
+logging.getLogger("OpenGL").setLevel(logging.INFO)
+logging.getLogger("matplotlib").setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Compilation is done automatically here to speed up development
 print("Compiling Fortran code")
@@ -135,10 +151,8 @@ def period_from_crossings(signal: np.ndarray, dt: float) -> float:
     # Find all indices right before a rising-edge zero crossing
     indices = np.nonzero((signal[1:] >= 0) & (signal[:-1] < 0))[0]
     crossings = [i - signal[i] / (signal[i + 1] - signal[i]) for i in indices]
-    print("Indices:")
-    print(indices)
-    print("Crossings:")
-    print(crossings)
+    logger.debug("Crossing indices: %s", indices)
+    logger.debug("Crossings: %s", crossings)
     return dt*np.mean(np.diff(crossings))
 
 
@@ -207,7 +221,9 @@ def part_1ac():
         periods[i] = period
         periods_sun[i] = period_sun
         radii_sun_au.append(np.linalg.norm(sun_pos, axis=1) / AU)
-        print(f"dt = {dt / YEAR_IN_S} years, true period: {period_true} years, simulated: {period} years")
+        logger.debug("dt = %s years", dt / YEAR_IN_S)
+        logger.debug("True period: %s years", period_true)
+        logger.debug("Simulated period: %s years", period)
 
         # fig: plt.Figure = plt.figure()
         # ax: plt.Axes = fig.add_subplot()
@@ -215,12 +231,12 @@ def part_1ac():
         # ax.set_xlabel("t (years)")
         # ax.set_ylabel(r"$\sin(\theta)$")
 
-        plot_system(pos, ax)
+        # plot_system(pos, ax)
 
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
     ax.plot(dts / YEAR_IN_S, periods, label="simulated, Jupiter")
-    ax.plot(dts / YEAR_IN_S, periods_sun, label="simulated, Sun")
+    ax.plot(dts / YEAR_IN_S, periods_sun, label="simulated, Sun", ls="--")
     ax.axhline(period_true, color="green", label="true", alpha=0.5)
     ax.set_xlabel("Timestep (years)")
     ax.set_ylabel("Period (years)")
@@ -230,7 +246,7 @@ def part_1ac():
     fig2: plt.Figure = plt.figure()
     ax2: plt.Axes = fig2.add_subplot()
     ax2.plot(dts / YEAR_IN_S, periods - period_true, label="Jupiter")
-    ax2.plot(dts / YEAR_IN_S, periods_sun - period_true, label="Sun", ls=":")
+    ax2.plot(dts / YEAR_IN_S, periods_sun - period_true, label="Sun", ls="--")
     ax2.set_yscale("log")
     ax2.set_xlabel("Timestep (years)")
     ax2.set_ylabel("Difference from real period (log, years)")
@@ -243,8 +259,7 @@ def part_1ac():
     ax3.set_xlabel("Timestep (years)")
     ax3.set_ylabel("Radius of the motion of the Sun")
 
-    print("Periods (Sun)")
-    print(periods_sun)
+    logger.debug("Periods (Sun): %s", periods_sun)
 
 
 def part_1b():
@@ -261,7 +276,7 @@ def part_1b():
     for i, steps in enumerate(steps_arr):
         dt = period_true / steps * YEAR_IN_S
         dts.append(dt)
-        print("dt", dt / YEAR_IN_S)
+        logger.debug("dt: %s years", dt / YEAR_IN_S)
         save_interval = max(1, steps // 100)
 
         sim = Simulation([sun, jupiter], dt=dt, g=G, fix_scale=True)
@@ -293,7 +308,7 @@ def part1b_plot(steps_arr, t_arrs, angles):
 
     final_angles_rad = np.arcsin([angle[-1] for angle in angles])*180/np.pi
     for (steps, angle) in zip(steps_arr, final_angles_rad):
-        print(f"Steps: {steps}, Jupiter angle: {angle} deg")
+        logger.debug("Steps: %s, Jupiter angle: %s deg", steps, angle)
 
     fig2: plt.Figure = plt.figure()
     ax2: plt.Axes = fig2.add_subplot()
