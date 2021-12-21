@@ -424,7 +424,7 @@ def part3_plot(dts: np.ndarray, periods: np.ndarray, use_rk4: bool, cut: float =
     ax.set_xlabel("dt (yr)")
     ax2.set_xlabel("dt (yr)")
     ax.set_ylabel("Period (yr)")
-    ax2.set_ylabel("Relative difference from real period (log, yr)")
+    ax2.set_ylabel("Ratio of simulated and real periods")
     ax.set_xscale("log")
     ax2.set_xscale("log")
     if not cut:
