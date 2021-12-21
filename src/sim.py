@@ -8,11 +8,13 @@ import core
 logger = logging.getLogger(__name__)
 
 # Units and constants
-# Astronomical unit
+# Astronomical unit (in m)
 AU = 1.495978707e11
 # Gravitational constant
 G = 6.67430e-11
 # Time
+SIDEREAL_MONTH_IN_D = 27.321661
+SIDEREAL_MONTH_IN_S = 2360591.5104
 YEAR_IN_D = 365.25
 YEAR_IN_S = 31557600
 # Scaling
@@ -29,7 +31,8 @@ class Celestial:
             v: tp.Union[np.ndarray, float],
             m: float,
             radius: float,
-            color: tp.Tuple[int, int, int],
+            color: tp.Tuple[int, int, int] = (0, 0, 0),
+            name: str = None,
             reference: "Celestial" = None,
             period: float = None,
             x_min: float = None,
@@ -61,19 +64,34 @@ class Celestial:
         self.reference = reference
         self.m = m
         self.radius = radius
+        self.period = period
+
         self.color = color
+        self.name = name
         self.texture_low = texture_low
         self.texture_high = texture_high
 
+    @property
+    def color_matplotlib(self) -> tp.Tuple[float, float, float]:
+        return self.color[0] / 255, self.color[1] / 255, self.color[2] / 255
+
 
 class Simulation:
-    def __init__(self, celestials: tp.List[Celestial], dt: float, g: float = 1, fix_scale: bool = False, fix_total_momentum: bool = True):
+    def __init__(
+            self,
+            celestials: tp.List[Celestial],
+            dt: float,
+            g: float = 1,
+            fix_scale: bool = False,
+            # Center-of-momentum frame
+            com_frame: bool = True):
         self.celestials = celestials
         self.g = g
         self.dt = dt
         self.fix_scale = fix_scale
-        self.fix_total_momentum = fix_total_momentum
+        self.com_frame = com_frame
 
+        # Indices: (dim, celestial)
         self.x = np.asfortranarray(np.array([cel.x for cel in celestials]).T)
         self.v = np.asfortranarray(np.array([cel.v for cel in celestials]).T)
         self.m = np.array([cel.m for cel in celestials], order="F")
@@ -87,7 +105,7 @@ class Simulation:
             self.v *= YEAR_IN_S / AU
             self.m /= M_EARTH
 
-            self.g = 6.67408e-11 * AU**-3 * M_EARTH * YEAR_IN_S**2
+            self.g = G * AU**-3 * M_EARTH * YEAR_IN_S**2
             g_check = M_EARTH / M_SUN * (V_EARTH * YEAR_IN_S / AU)**2
             if not np.isclose(self.g, g_check, rtol=1e-3):
                 logger.debug("G (value): %s", self.g)
@@ -97,9 +115,14 @@ class Simulation:
             # print("Periods in years")
             # print(2*np.pi*self.x[0, :] / self.v[1, :])
 
-        # TODO: fix this
-        # if self.fix_total_momentum:
-        #     total_p = self.m * self.v
+        if self.com_frame:
+            total_m = np.sum(self.m)
+            total_p = np.sum(self.m * self.v, axis=1)
+            self.v = (self.v.T - total_p.T / total_m).T
+            print("Total momentum:", np.sum(self.m * self.v, axis=1))
+            center_of_mass = np.sum(self.m * self.x, axis=1) / total_m
+            self.x = (self.x.T - center_of_mass).T
+            print("Center of mass:", np.sum(self.m * self.x, axis=1) / total_m)
 
         self.min_dist = 1e-4*np.min(np.abs(self.x))
         self.x_hist = []
