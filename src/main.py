@@ -278,11 +278,11 @@ def simulate_binary_pair(
 
     fig2: plt.Figure = plt.figure()
     ax2: plt.Axes = fig2.add_subplot()
-    ax2.plot(dts / sim.YEAR_IN_S, periods - period_true, label=satellite.name)
-    ax2.plot(dts / sim.YEAR_IN_S, periods_center - period_true, label=center.name, ls="--")
+    ax2.plot(dts / sim.YEAR_IN_S, np.abs(periods - period_true), label=satellite.name)
+    ax2.plot(dts / sim.YEAR_IN_S, np.abs(periods_center - period_true), label=center.name, ls="--")
     ax2.set_yscale("log")
     ax2.set_xlabel("Timestep (years)")
-    ax2.set_ylabel("Difference from real period (log, years)")
+    ax2.set_ylabel("Relative difference from real period (log, yr)")
     ax2.legend()
     fig2.savefig(f"../report/fig_{name}_2.eps")
 
@@ -290,13 +290,14 @@ def simulate_binary_pair(
     ax3: plt.Axes = fig3.add_subplot()
     ax3.errorbar(
         dts / sim.YEAR_IN_S,
-        np.mean(radii_center_au, axis=1) * sim.AU * 1e-3,
-        yerr=np.std(radii_center_au, axis=1) * sim.AU * 1e-3,
+        np.mean(radii_center_au, axis=1) * sim.AU,
+        yerr=np.std(radii_center_au, axis=1) * sim.AU,
         fmt=".",
         capsize=3
     )
     ax3.set_xlabel("Timestep (years)")
-    ax3.set_ylabel(f"Radius of the motion of {center.name} (km)")
+    ax3.set_ylabel(f"Radius of the motion of {center.name} (m)")
+    fig3.savefig(f"../report/fig_{name}_3.eps")
 
     logger.debug("Periods (%s): %s", center.name, periods_center)
 
@@ -349,7 +350,7 @@ def part1b_plot(steps_arr, t_arrs, angles):
         ax.plot(t_arr, angle, label=f"n={steps}", color=cmap(i/n))
     ax.set_xlabel("t (years)")
     ax.set_ylabel(r"$\sin(\theta)$")
-    ax.legend()
+    ax.legend(prop={"size": 6})
 
     final_angles_rad = np.arcsin([angle[-1] for angle in angles])*180/np.pi
     for (steps, angle) in zip(steps_arr, final_angles_rad):
@@ -363,6 +364,9 @@ def part1b_plot(steps_arr, t_arrs, angles):
     ax2.set_xscale("log")
     ax2.set_yscale("log")
 
+    fig.savefig("../report/fig_1b_1.eps")
+    fig2.savefig("../report/fig_1b_2.eps")
+
 
 def part_2a():
     dts = np.linspace(1e-4, 0.05, 100)*sim.YEAR_IN_S
@@ -374,24 +378,37 @@ def part_2b():
     simulate_binary_pair(name="2b", center=earth, satellite=moon, dts=dts, period_true=sim.SIDEREAL_MONTH_IN_S/sim.YEAR_IN_S)
 
 
-def part_3():
-    dts = np.linspace(1e-5, 1e-2, 20) * sim.YEAR_IN_S
+def part_3(use_rk4: bool = False, plot: bool = True, interactive: bool = False):
+    dts = np.logspace(-4, -1, 50) * sim.YEAR_IN_S
     periods = np.zeros((len(solar_system), len(dts)))
     save_interval = 10
     for i, dt in enumerate(dts):
         simulation = sim.Simulation(solar_system, dt=dt, g=sim.G, fix_scale=True)
-        simulation.run(steps=10**5, save_interval=save_interval)
+        # For faster simulations use 10**5.
+        simulation.run(steps=10**6, save_interval=save_interval, use_rk4=use_rk4)
         x_hist = np.array(simulation.x_hist)
 
-        if i == 0:
-            # plt.plot(sin_from_pos(x_hist[:, :, 6]))
+        if i == 3:
             ax = plot_system(solar_system, x_hist)
             ax.set_title(f"dt = {dt}")
+
             # 3D analysis
-            # show_simulation(simulation, unit_mult=sim.AU)
+            if interactive:
+                show_simulation(simulation, unit_mult=sim.AU)
 
         for j in range(len(solar_system)):
             periods[j, i] = period_from_pos(x_hist[:, :, j], dt=dt, save_interval=save_interval)
+
+    if plot:
+        part3_plot(dts, periods, use_rk4)
+        part3_plot(dts, periods, use_rk4, 1e-2 * sim.YEAR_IN_S)
+
+
+def part3_plot(dts: np.ndarray, periods: np.ndarray, use_rk4: bool, cut: float = None):
+    if cut:
+        inds = dts < cut
+        dts = dts[inds]
+        periods = periods[:, inds]
 
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
@@ -403,16 +420,31 @@ def part_3():
         print("periods:", periods[j, :])
         ax.plot(dts / sim.YEAR_IN_S, periods[j, :], label=obj.name, color=obj.color_matplotlib)
         ax2.plot(dts / sim.YEAR_IN_S, periods[j, :] / obj.period, label=obj.name, color=obj.color_matplotlib)
+
     ax.set_xlabel("dt (yr)")
     ax2.set_xlabel("dt (yr)")
     ax.set_ylabel("Period (yr)")
-    ax2.set_ylabel("Relative period")
+    ax2.set_ylabel("Relative difference from real period (log, yr)")
     ax.set_xscale("log")
     ax2.set_xscale("log")
+    if not cut:
+        ax.axvline(0.06, ls="--", color="black")
+        ax2.axvline(0.06, ls="--", color="black")
+        ax.set_yscale("log")
+        ax2.set_yscale("log")
     ax.legend()
     ax2.legend()
 
+    mode_text = "_rk4" if use_rk4 else ""
+    cut_text = "_cut" if cut else ""
+    try:
+        fig.savefig(f"../report/fig_3_abs{mode_text}{cut_text}.eps")
+        fig2.savefig(f"../report/fig_3_rel{mode_text}{cut_text}.eps")
+    except ValueError as e:
+        logger.exception(e)
 
+
+# This is an earlier nbody version that does not work at the moment but is left here for reference.
 # def nbody_test():
 #     print("Starting")
 #     n_objs = 10
@@ -462,21 +494,23 @@ def nbody_test2():
         radius=1
     ) for _ in range(10)]
 
-    simulation = sim.Simulation(celestials, dt=0.1, g=1)
-    simulation.run(steps=10000, save_interval=100)
+    simulation = sim.Simulation(celestials, dt=1e-3, g=1e-3, fix_scale=False, com_frame=True)
+    simulation.run(steps=10**6, save_interval=100)
 
     # 3D analysis
     show_simulation(simulation)
 
 
 if __name__ == "__main__":
-    # nbody_test()
-    # nbody_test2()
-
-    # part_1ac()
-    # part_1b()
-    # part_2a()
-    # part_2b()
+    part_1ac()
+    part_1b()
+    part_2a()
+    part_2b()
     part_3()
+    part_3(use_rk4=True)
+
+    # 3D visualizations
+    # nbody_test2()
+    # part_3(interactive=True, plot=False)
 
     plt.show()

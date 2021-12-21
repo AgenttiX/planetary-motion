@@ -140,7 +140,7 @@ class Simulation:
         # print(self.m.T)
         # print("LOAD DEBUG PRINT END")
 
-    def run(self, steps: int, save_interval: int):
+    def run(self, steps: int, save_interval: int, use_rk4: bool = False):
         if steps % save_interval != 0:
             raise ValueError("Steps must be a multiple of the save interval")
         start_x = self.x.copy()
@@ -151,11 +151,18 @@ class Simulation:
         self.print()
         for i in range(batches):
             print("Batch", i, "of", batches)
-            core.core.iterate(
-                self.x, self.v, self.a, self.m, self.dt,
-                n_steps=save_interval,
-                g=self.g,
-                min_dist=self.min_dist)
+            if use_rk4:
+                core.core.iterate_rk4(
+                    self.x, self.v, self.a, self.m, self.dt,
+                    n_steps=save_interval,
+                    g=self.g,
+                    min_dist=self.min_dist)
+            else:
+                core.core.iterate(
+                    self.x, self.v, self.a, self.m, self.dt,
+                    n_steps=save_interval,
+                    g=self.g,
+                    min_dist=self.min_dist)
             new_x = self.x.copy()
             if self.fix_scale:
                 new_x *= AU
