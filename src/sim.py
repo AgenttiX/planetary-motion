@@ -87,11 +87,12 @@ class Simulation:
             self.v *= YEAR_IN_S / AU
             self.m /= M_EARTH
 
-            # This is an ugly hack but I'm in a hurry and for some reason
-            # cannot figure out how to convert the gravitational
-            # constant properly. (It should be trivial.)
-            # self.g = 1.195e-4
-            self.g = M_EARTH / M_SUN * (V_EARTH * YEAR_IN_S / AU)**2
+            self.g = 6.67408e-11 * AU**-3 * M_EARTH * YEAR_IN_S**2
+            g_check = M_EARTH / M_SUN * (V_EARTH * YEAR_IN_S / AU)**2
+            if not np.isclose(self.g, g_check, rtol=1e-3):
+                logger.debug("G (value): %s", self.g)
+                logger.debug("G (from Solar system): %s", g_check)
+                raise ValueError("G does not correspond to the values of the Solar system.")
 
             # print("Periods in years")
             # print(2*np.pi*self.x[0, :] / self.v[1, :])
